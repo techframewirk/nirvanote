@@ -1,5 +1,6 @@
 require('dotenv').config()
-const app = require('express')()
+const express = require('express')
+const app = express()
 const multer = require('multer')
 const upload = multer({ dest: 'uploads/' })
 const AWS = require('aws-sdk')
@@ -12,6 +13,8 @@ AWS.config.update({
 const s3 = new AWS.S3({
     apiVersion: '2006-03-01'
 })
+
+app.use(express.json())
 
 app.post('/add-voice', upload.single('file'), async (req, res, next) => {
     try {
@@ -45,6 +48,21 @@ app.post('/add-voice', upload.single('file'), async (req, res, next) => {
         console.log(req.file.filename)
         res.status(200).json({
             message: 'Voice added successfully'
+        })
+    } catch (e) {
+        console.log(e)
+    }
+})
+
+app.get('/get-file', async(req, res, next) => {
+    try {
+        let signedUrl = s3.getSignedUrl( "getObject" ,{
+            Key: req.body.key,
+            Bucket: 'stayhalo-voice',
+            Expires: 3600
+        })
+        res.status(200).json({
+            url: signedUrl
         })
     } catch (e) {
         console.log(e)
