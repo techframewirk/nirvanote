@@ -67,12 +67,16 @@ const setWhatsappWebhook = async () => {
 
 const listenToWhatsapp = async (req, res) => {
     try {
-        console.log('Whatsapp message received!')
         let messageData = req.body
-        messageModel.addMessage(messageData)
         for (let i = 0; i < messageData.messages.length; i++) {
             let contact = messageData.contacts[i]
             let message = messageData.messages[i]
+            messageModel.addMessage({
+                type: 'received',
+                with: message.from,
+                message: message,
+                timestamp: new Date()
+            })
             switch(message.type) {
                 case 'text':
                     console.log('Text received')
@@ -113,7 +117,7 @@ const downloadMedia = async (message) => {
                 }
             }, (err, res, body) => {
                 if (err) {
-                    console.log(err)
+                    reject(err)
                 } else {
                     path = `./media/${message[message.type].id}.${res.headers['content-type'].split('/')[1]}`
                     request(`${process.env.WHATSAPP_URL}/v1/media/${message[message.type].id}`, {
@@ -126,6 +130,22 @@ const downloadMedia = async (message) => {
                 resolve(path)
             })
         })
+    } catch (err) {
+        throw err
+    }
+}
+
+const sendMessage = async (message) => {
+    try {
+        let response = await axios.post(`${process.env.WHATSAPP_URL}/v1/messages`, message, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        if(response.status === 200) {
+            console.log('Message sent successfully!')
+        }
     } catch (err) {
         throw err
     }
