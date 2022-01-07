@@ -19,6 +19,8 @@ app.use(express.json())
 // Utils Import
 let db = require('./utils/db')
 let s3 = require('./utils/s3')
+let cache = require('./utils/cache')
+let whatsapp = require('./utils/whatsapp')
 
 app.post('/', async(req, res, next) => {
     try {
@@ -92,8 +94,15 @@ app.get('/get-file', async(req, res, next) => {
     }
 })
 
-db.establishConnection(() => {
-    app.listen(process.env.PORT || '3000', () => {
-        console.log('Server Started')
-    })
+db.establishConnection( async () => {
+    try {
+        await cache.initiateConnection()
+        await whatsapp.authenticateWithWhatsapp()
+        app.listen(process.env.PORT || '3000', () => {
+            console.log('Server Started')
+        })
+    } catch (err) {
+        console.log(err)
+        process.exit(1)
+    }
 })
