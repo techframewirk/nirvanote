@@ -94,10 +94,13 @@ app.get('/get-file', async(req, res, next) => {
     }
 })
 
+app.post(`/webhook/whatsapp/${process.env.WHATSAPP_WEBHOOK_SECRET}`, whatsapp.listenToWhatsapp)
+
 db.establishConnection( async () => {
     try {
         await cache.initiateConnection()
         await whatsapp.authenticateWithWhatsapp()
+        await whatsapp.setWhatsappWebhook()
         app.listen(process.env.PORT || '3000', () => {
             console.log('Server Started')
         })
