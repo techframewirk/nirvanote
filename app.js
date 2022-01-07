@@ -16,6 +16,20 @@ const s3 = new AWS.S3({
 
 app.use(express.json())
 
+// Utils Import
+let db = require('./utils/db')
+
+app.post('/', async(req, res, next) => {
+    try {
+        console.log(JSON.stringify(req.body))
+        res.status(200).json({
+            message: 'success'
+        })
+    } catch (error) {
+        console.log(error)
+    }
+})
+
 app.post('/add-voice', upload.single('file'), async (req, res, next) => {
     try {
         // s3.listBuckets((err, data) => {
@@ -39,6 +53,11 @@ app.post('/add-voice', upload.single('file'), async (req, res, next) => {
         s3.upload(uploadParams, function (err, data) {
             if (err) {
                 console.log("Error", err)
+                fs.unlink(req.file.path, (err) => {
+                    if (err) {
+                        console.log(err)
+                    }
+                })
             } if (data) {
                 console.log("Upload Success", data.Location)
             }
@@ -59,7 +78,7 @@ app.get('/get-file', async(req, res, next) => {
         let signedUrl = s3.getSignedUrl( "getObject" ,{
             Key: req.body.key,
             Bucket: 'stayhalo-voice',
-            Expires: 3600
+            Expires: parseInt(process.env.S3_URL_EXPIRY)
         })
         res.status(200).json({
             url: signedUrl
@@ -69,6 +88,8 @@ app.get('/get-file', async(req, res, next) => {
     }
 })
 
-app.listen(3000, () => {
-    console.log('Server started on port 3000')
+db.establishConnection(() => {
+    app.listen(process.env.PORT || '3000', () => {
+        console.log('Server Started')
+    })
 })
