@@ -1,5 +1,7 @@
 const axios = require('axios').default
 const cache = require('./cache')
+let fs = require('fs')
+let request = require('request')
 
 const messageModel = require('../models/messages')
 
@@ -66,7 +68,29 @@ const setWhatsappWebhook = async () => {
 const listenToWhatsapp = async (req, res) => {
     try {
         console.log('Whatsapp message received!')
-        messageModel.addMessage(req.body)
+        let messageData = req.body
+        messageModel.addMessage(messageData)
+        for (let i = 0; i < messageData.messages.length; i++) {
+            let contact = messageData.contacts[i]
+            let message = messageData.messages[i]
+            switch(message.type) {
+                case 'text':
+                    console.log('Text received')
+                    break
+                case 'image':
+                    let path = await downloadMedia(message)
+                    console.log(path)
+                    console.log('Image received')
+                    break
+                case 'voice':
+                    downloadMedia(message)
+                    console.log('Voice message received')
+                    break
+                case 'location':
+                    console.log('Location received')
+                    break
+            }
+        }
         res.status(200).json({
             status: 'ok'
         })
@@ -75,6 +99,35 @@ const listenToWhatsapp = async (req, res) => {
         res.status(400).json({
             status: 'error'
         })
+    }
+}
+
+const downloadMedia = async (message) => {
+    try {
+        let path = null
+        return new Promise((resolve, reject) => {
+            request.head(`${process.env.WHATSAPP_URL}/v1/media/${message[message.type].id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }, (err, res, body) => {
+                if (err) {
+                    console.log(err)
+                } else {
+                    path = `./media/${message[message.type].id}.${res.headers['content-type'].split('/')[1]}`
+                    request(`${process.env.WHATSAPP_URL}/v1/media/${message[message.type].id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }).pipe(fs.createWriteStream(`./media/${message[message.type].id}.${res.headers['content-type'].split('/')[1]}`))
+                }
+                resolve(path)
+            })
+        })
+    } catch (err) {
+        throw err
     }
 }
 
