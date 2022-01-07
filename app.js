@@ -7,17 +7,18 @@ const AWS = require('aws-sdk')
 let fs = require('fs')
 
 AWS.config.update({
-    region: 'ap-south-1',
+    region: process.env.S3_REGION,
 })
 
-const s3 = new AWS.S3({
-    apiVersion: '2006-03-01'
-})
+// const s3 = new AWS.S3({
+//     apiVersion: '2006-03-01'
+// })
 
 app.use(express.json())
 
 // Utils Import
 let db = require('./utils/db')
+let s3 = require('./utils/s3')
 
 app.post('/', async(req, res, next) => {
     try {
@@ -39,32 +40,34 @@ app.post('/add-voice', upload.single('file'), async (req, res, next) => {
         //         console.log(data.Buckets)
         //     }
         // })
-        let uploadParams = {
-            Bucket: 'stayhalo-voice',
-            Key: '',
-            Body: ''
-        }
-        let fileStream = fs.createReadStream(req.file.path)
-        fileStream.on('error', function (err) {
-            console.log('File Error', err)
-        })
-        uploadParams.Body = fileStream
-        uploadParams.Key = req.file.originalname
-        s3.upload(uploadParams, function (err, data) {
-            if (err) {
-                console.log("Error", err)
-                fs.unlink(req.file.path, (err) => {
-                    if (err) {
-                        console.log(err)
-                    }
-                })
-            } if (data) {
-                console.log("Upload Success", data.Location)
-            }
-        })
-        console.log(req.file.originalname)
-        console.log(req.file.path)
-        console.log(req.file.filename)
+        // let uploadParams = {
+        //     Bucket: 'stayhalo-voice',
+        //     Key: '',
+        //     Body: ''
+        // }
+        // let fileStream = fs.createReadStream(req.file.path)
+        // fileStream.on('error', function (err) {
+        //     console.log('File Error', err)
+        // })
+        // uploadParams.Body = fileStream
+        // uploadParams.Key = req.file.originalname
+        // s3.upload(uploadParams, function (err, data) {
+        //     if (err) {
+        //         console.log("Error", err)
+        //         fs.unlink(req.file.path, (err) => {
+        //             if (err) {
+        //                 console.log(err)
+        //             }
+        //         })
+        //     } if (data) {
+        //         console.log("Upload Success", data.Location)
+        //     }
+        // })
+        // console.log(req.file.originalname)
+        // console.log(req.file.path)
+        // console.log(req.file.filename)
+        // console.log(req.file)
+        await s3.pushFileToS3(req.file.originalname, req.file.path)
         res.status(200).json({
             message: 'Voice added successfully'
         })
@@ -75,11 +78,12 @@ app.post('/add-voice', upload.single('file'), async (req, res, next) => {
 
 app.get('/get-file', async(req, res, next) => {
     try {
-        let signedUrl = s3.getSignedUrl( "getObject" ,{
-            Key: req.body.key,
-            Bucket: 'stayhalo-voice',
-            Expires: parseInt(process.env.S3_URL_EXPIRY)
-        })
+        // let signedUrl = s3.getSignedUrl( "getObject" ,{
+        //     Key: req.body.key,
+        //     Bucket: 'stayhalo-voice',
+        //     Expires: parseInt(process.env.S3_URL_EXPIRY)
+        // })
+        let signedUrl = await s3.getSignedURLFromS3(req.body.key, parseInt(process.env.S3_URL_EXPIRY))
         res.status(200).json({
             url: signedUrl
         })
