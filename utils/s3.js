@@ -18,15 +18,21 @@ const pushFileToS3 = async (filname, filepath) => {
     });
     uploadParams.Body = fileStream;
     uploadParams.Key = filname;
-    s3.upload(uploadParams, function (err, data) {
-      if (err) {
-        throw err;
-      } else {
-        console.log(data);
-        fs.unlink(filepath, (err) => {
-          throw err;
-        });
-      }
+    return new Promise((resolve, reject) => {
+      s3.upload(uploadParams, function (err, data) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data.key);
+          // fs.unlink(filepath, (err) => {
+          //   if (err) {
+          //     reject(err);
+          //   } else {
+          //     resolve(data.key);
+          //   }
+          // });
+        }
+      })
     });
     // todo := Add the S3 key to DB and return it to calling function
   } catch (err) {

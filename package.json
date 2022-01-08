@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/speech": "^4.9.0",
     "@google-cloud/translate": "^6.3.1",
     "aws-sdk": "^2.1051.0",
     "axios": "^0.24.0",

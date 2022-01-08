@@ -3,7 +3,8 @@ const cache = require('./cache')
 let fs = require('fs')
 let request = require('request')
 const { CachedState } = require('../utils/classes')
-const { handleTextMessage, handleButtonMessage, handleLocationMessage } = require('../controllers/whatsapp')
+const { handleTextMessage, handleButtonMessage, handleLocationMessage, handleMediaMessage } = require('../controllers/whatsapp')
+const s3 = require('../utils/s3')
 
 const messageModel = require('../models/messages')
 
@@ -78,8 +79,14 @@ const listenToWhatsapp = async (req, res) => {
                         console.log('Image received')
                         break
                     case 'voice':
-                        downloadMedia(message)
-                        console.log('Voice message received')
+                        let { filepath, filename } = await downloadMedia(message)
+                        let filekey = await s3.pushFileToS3(filename, filepath)
+                        let tempCache = new CachedState(cachedData.number, cachedData.state, cachedData.data)
+                        tempCache.data.filekey = filekey
+                        tempCache.data.filename = filename
+                        tempCache.data.filepath = filepath
+                        await tempCache.cacheState()
+                        handleMediaMessage(message, contact, tempCache)
                         break
                     case 'location':
                         handleLocationMessage(message, contact, cachedData)
@@ -114,15 +121,24 @@ const downloadMedia = async (message) => {
                 if (err) {
                     reject(err)
                 } else {
-                    path = `./media/${message[message.type].id}.${res.headers['content-type'].split('/')[1]}`
+                    path = `./media/${message[message.type].id}.${res.headers['content-type'].split('/')[1].split(';')[0]}`
                     request(`${process.env.WHATSAPP_URL}/v1/media/${message[message.type].id}`, {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json'
                         }
-                    }).pipe(fs.createWriteStream(`./media/${message[message.type].id}.${res.headers['content-type'].split('/')[1]}`))
+                    }).pipe(fs.createWriteStream(`./media/${message[message.type].id}.${res.headers['content-type'].split('/')[1].split(';')[0]}`))
+                        .on('close', () => {
+                            // console.log('write done')
+                            // const base64data = fs.readFileSync(path, { encoding: 'base64' })
+                            // fs.writeFileSync(`./media/${message[message.type].id}.mp3`, Buffer.from(base64data.replace('data:audio/ogg; codecs=opus;base64,', ''), 'base64'));
+                            // fs.unlinkSync(path)
+                            resolve({
+                                filepath: path,
+                                filename: `${message[message.type].id}.${res.headers['content-type'].split('/')[1].split(';')[0]}`
+                            })
+                        })
                 }
-                resolve(path)
             })
         })
     } catch (err) {

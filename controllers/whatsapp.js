@@ -6,6 +6,8 @@ const { translateText, detectLanguage } = require('../utils/translator')
 const storeModel = require('../models/store')
 const { UserAlreadyExistsError } = require('../utils/errors')
 const sendMessage = require('../utils/sendMessage')
+const stt = require('../utils/stt')
+let db = require('../utils/db')
 
 const stateMessage = {
     '00001': 'preferredLanguageRequest',
@@ -245,8 +247,46 @@ const handleLocationMessage = async (message, contact, cachedData) => {
     }
 }
 
+const handleMediaMessage = async (message, contact, cachedData) => {
+    try {
+        let data = new CachedState(cachedData.number, cachedData.state, cachedData.data)
+        let messageToSend = null
+        let detectedLanguage = null
+        switch(data.state) {
+            case '00006':
+                let transcription = await stt.convertToText(data.data.filepath)
+                if(transcription) {
+                    if (transcription.length > 0 && transcription[0] != '') {
+                        let detectedStrings = transcription.split(',')
+                        console.log(detectedStrings)
+                        let andQueries = detectedStrings.map(dtstr => {
+                            return {
+                                name: {
+                                    $regex: `.*${dtstr}.*`,
+                                    $options: 'i'
+                                }
+                            }
+                        })
+                        console.log(andQueries)
+                        let matches = await db.getDB().collection('templateItems').find({
+                            $or: andQueries
+                        }).toArray()
+                        console.log(matches)
+                    }
+                }
+                // console.log(matches)
+                break
+            default:
+                console.log('Error')
+        }
+    } catch (err) {
+        throw err
+    }
+}
+
 module.exports = {
     handleTextMessage,
     handleButtonMessage,
-    handleLocationMessage
+    handleLocationMessage,
+    handleMediaMessage
 }
