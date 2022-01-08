@@ -33,6 +33,24 @@ class TemplateItem {
         }
     }
 
+    async findById() {
+        try {
+            let result = await db.getDB().collection(collectionName).findOne({ _id: ObjectId(this._id)})
+            return result
+        } catch (err) {
+            throw err
+        }
+    }
+
+    async find(){
+        try {
+            let result = await db.getDB().collection(collectionName).find()
+            return result
+        } catch (err) {
+            throw err
+        }
+    }
+
     async save() {
         try {
             let validatedData = await this.validate()
@@ -53,10 +71,9 @@ class TemplateItem {
         }
     }
 
-    async update() {
+    async update(updateData) {
         try {
-            let validatedData = await this.validate()
-            delete validatedData._id
+            let validatedData = await templateItemSchema.validateAsync(updateData)
             let result = await db.getDB().collection(collectionName).updateOne({ _id: ObjectId(this._id) }, { $set: validatedData })
             return result
         } catch (err) {
