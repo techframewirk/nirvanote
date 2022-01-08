@@ -61,7 +61,11 @@ class CachedState {
     }
 
     async getStateFromCache() {
-        let value = await cache.getHashFromCache(`${this.number}`)
+        let tempValue = await cache.getHashFromCache(`${this.number}`)
+        let value = {
+            ...tempValue,
+            data: tempValue.data ? JSON.parse(tempValue.data) : {}
+        }
         return value
     }
 
