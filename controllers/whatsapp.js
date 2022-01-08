@@ -14,14 +14,14 @@ const handleTextMessage = async (message, contact, cachedData) => {
     try {
         let data = new CachedState(cachedData.number, cachedData.state, cachedData.data)
         let messageToSend = null
+        let detectedLanguage = null
         if(message.text.body.toLowerCase() == 'clear') {
             await data.clearAllCache()
         } else {
             switch (data.state) {
                 case '00002':
                     data.data.name = message.text.body
-                    let detectedLanguage = await detectLanguage(message.text.body)
-                    console.log(detectedLanguage)
+                    detectedLanguage = await detectLanguage(message.text.body)
                     if (detectedLanguage.language != languages.english) {
                         data.data.name = await translateText(message.text.body, languages.english)
                     }
@@ -44,8 +44,28 @@ const handleTextMessage = async (message, contact, cachedData) => {
                     )
                     break
                 case '00003':
-                    console.log("Seconf")
-                    console.log(data.data.name)
+                    data.data.storeName = message.text.body
+                    detectedLanguage = await detectLanguage(message.text.body)
+                    if (detectedLanguage.language != languages.english) {
+                        data.data.storeName = await translateText(message.text.body, languages.english)
+                    }
+                    data.state = '00004'
+                    await data.cacheState()
+                    messageToSend = new Message(
+                        message.from,
+                        'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                        'location_request',
+                        data.data.preferredLanguage,
+                        [{
+                            "type": "body",
+                            "parameters": [
+                                {
+                                    "type": "text",
+                                    "text": message.text.body
+                                }
+                            ]
+                        }]
+                    )
                     break
                 default:
                     messageToSend = new Message(
