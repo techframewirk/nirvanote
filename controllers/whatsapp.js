@@ -306,6 +306,34 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                 }
                 // console.log(matches)
                 break
+            case '00007':
+                let detectedWords = await stt.convertToText(data.data.filepath)
+                if(detectedWords) {
+                    let price = parseInt(detectedWords)
+                    if(!isNaN(price)) {
+                        data.data.price = price
+                        data.state = '00009'
+                        await data.cacheState()
+                        messageToSend = new Message(
+                            message.from,
+                            'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            'item_added',
+                            data.data.preferredLanguage,
+                            null
+                        )
+                    }
+                } else {
+                    data.state = '00008'
+                    await data.cacheState()
+                    messageToSend = new Message(
+                        message.from,
+                        'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                        'item_unidentified',
+                        data.data.preferredLanguage,
+                        null
+                    )
+                }
+                break
             default:
                 console.log('Error')
         }
