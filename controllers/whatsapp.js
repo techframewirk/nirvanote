@@ -93,6 +93,17 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                 null
                             )
                             break
+                        case '2':
+                            data.state = '00010'
+                            await data.cacheState()
+                            await new Message(
+                                message.from,
+                                'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                                'update_message',
+                                data.data.preferredLanguage,
+                                null
+                            ).send()
+                            // Intentional fall through
                         case '3':
                             data.state = '00010'
                             let storeItems = await db.getDB().collection('items').find({
