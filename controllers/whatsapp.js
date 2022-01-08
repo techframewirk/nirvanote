@@ -91,6 +91,9 @@ const handleButtonMessage = async (message, contact, cachedData) => {
     try {
         let data = new CachedState(cachedData.number, cachedData.state, cachedData.data)
         let messageToSend = null
+        if (message.button.text.toLowerCase() == 'exit') {
+            await data.clearAllCache()
+        } else {}
         switch(data.state) {
             case '00001':
                 data.data = {}
@@ -133,7 +136,35 @@ const handleButtonMessage = async (message, contact, cachedData) => {
     }
 }
 
+const handleLocationMessage = async (message, contact, cachedData) => {
+    try {
+        let data = new CachedState(cachedData.number, cachedData.state, cachedData.data)
+        let messageToSend = null
+        switch(data.state) {
+            case '00004':
+                console.log('******Location received******')
+                data.data.storeLocation = `${message.location.latitude}, ${message.location.longitude}`
+                data.state = '00005'
+                await data.cacheState()
+                messageToSend = new Message(
+                    message.from,
+                    'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                    'patti_menu',
+                    data.data.preferredLanguage,
+                    null
+                )
+                break
+        }
+        if (messageToSend != null) {
+            messageToSend.send()
+        }
+    } catch (err) {
+        throw err
+    }
+}
+
 module.exports = {
     handleTextMessage,
-    handleButtonMessage
+    handleButtonMessage,
+    handleLocationMessage
 }
