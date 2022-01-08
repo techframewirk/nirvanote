@@ -255,10 +255,16 @@ const handleMediaMessage = async (message, contact, cachedData) => {
         switch(data.state) {
             case '00006':
                 let transcription = await stt.convertToText(data.data.filepath)
+                let emptyMessage = new Message(
+                    message.from,
+                    'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                    'item_unidentified',
+                    data.data.preferredLanguage,
+                    null
+                )
                 if(transcription) {
                     if (transcription.length > 0 && transcription[0] != '') {
                         let detectedStrings = transcription.split(',')
-                        console.log(detectedStrings)
                         let andQueries = detectedStrings.map(dtstr => {
                             return {
                                 name: {
@@ -268,16 +274,43 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                             }
                         })
                         console.log(andQueries)
-                        let matches = await db.getDB().collection('templateItems').find({
+                        let matches = await db.getDB().collection('templateItems').findOne({
                             $or: andQueries
-                        }).toArray()
-                        console.log(matches)
+                        })
+                        if(matches != undefined && matches != null) {
+                            data.data.selectedItem = matches._id
+                            data.state = '00007'
+                            await data.cacheState()
+                            messageToSend = new Message(
+                                message.from,
+                                'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                                'price_voicenote',
+                                data.data.preferredLanguage,
+                                null
+                            )
+                        }
+                        else {
+                            data.state = '00008'
+                            await data.cacheState()
+                            emptyMessage.send()
+                        }
+                    } else {
+                        data.state = '00008'
+                        await data.cacheState()
+                        emptyMessage.send()
                     }
+                } else {
+                    data.state = '00008'
+                    await data.cacheState()
+                    emptyMessage.send()
                 }
                 // console.log(matches)
                 break
             default:
                 console.log('Error')
+        }
+        if(messageToSend != null) {
+            messageToSend.send()
         }
     } catch (err) {
         throw err
