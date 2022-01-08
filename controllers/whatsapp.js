@@ -16,7 +16,10 @@ const stateMessage = {
     '00002': 'storeNameAndStoreNameRequest',
     '00003': 'storeNameAndRequestLocation',
     '00004': 'storeLocationAndRedirectUserToMenu',
-    '00005': 'initiateRoutingAsPerNeed'
+    '00005': 'initiateRoutingAsPerNeed',
+    '00006': 'receiveVoiceItem',
+    '00007': 'receiveVoicePrice',
+    '00008': 'processNewItemTemplate',
 }
 
 const handleTextMessage = async (message, contact, cachedData) => {
