@@ -20,6 +20,7 @@ const stateMessage = {
     '00006': 'receiveVoiceItem',
     '00007': 'receiveVoicePrice',
     '00008': 'processNewItemTemplate',
+    '00010': 'listItems',
 }
 
 const handleTextMessage = async (message, contact, cachedData) => {
@@ -91,6 +92,53 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                 data.data.preferredLanguage,
                                 null
                             )
+                            break
+                        case '3':
+                            data.state = '00010'
+                            let storeItems = await db.getDB().collection('items').find({
+                                store: data.data.storeId.toString()
+                            }).toArray()
+                            let pageNumber = data.data.pageNumber ? data.data.pageNumber : 1
+                            if(storeItems.length > 0) {
+                                for(let i = 0; i < storeItems.length; i++) {
+                                    let templateItem = await db.getDB().collection('templateItems').findOne({
+                                        _id: ObjectId(storeItems[i].templateItemId)
+                                    })
+                                    console.log(storeItems[i].templateItemId)
+                                    console.log(templateItem.name)
+                                    console.log(storeItems[i].price)
+                                    await new Message(
+                                        message.from,
+                                        'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                                        'listing_item_detail',
+                                        data.data.preferredLanguage,
+                                        [{
+                                            "type": "body",
+                                            "parameters": [
+                                                {
+                                                    "type": "text",
+                                                    "text": storeItems[i].templateItemId
+                                                },
+                                                {
+                                                    "type": "text",
+                                                    "text": templateItem.name
+                                                },
+                                                {
+                                                    "type": "text",
+                                                    "text": storeItems[i].price.toString()
+                                                }
+                                            ]
+                                        }]
+                                    ).send()
+                                }
+                            } else {
+                                // todo := reply saying no items found
+                                // messageToSend = new Message(
+                                //     message.from,
+                                //     'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                                // )
+                                await data.clearAllCache()
+                            }
                             break
                         default:
                             console.log("Not a valid option")
