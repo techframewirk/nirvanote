@@ -23,6 +23,26 @@ const handleTextMessage = async (message, contact, cachedData) => {
                     'en',
                     null
                 )
+                let newCache = new CachedState(message.from, '00001', {})
+                await newCache.cacheState()
+        }
+        if (messageToSend != null) {
+            messageToSend.send()
+        }
+    } catch (err) {
+        throw err
+    }
+}
+
+const handleButtonMessage = async (message, contact, cachedData) => {
+    try {
+        let data = new CachedState(cachedData.number, cachedData.state, cachedData.data)
+        let messageToSend = null
+        switch(data.state) {
+            case '00001':
+                console.log(message)
+                data.clearAllCache()
+                break
         }
         if (messageToSend != null) {
             messageToSend.send()
@@ -33,5 +53,6 @@ const handleTextMessage = async (message, contact, cachedData) => {
 }
 
 module.exports = {
-    handleTextMessage
+    handleTextMessage,
+    handleButtonMessage
 }
