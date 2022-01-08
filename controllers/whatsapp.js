@@ -99,8 +99,9 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                 store: data.data.storeId.toString()
                             }).toArray()
                             let pageNumber = data.data.pageNumber ? data.data.pageNumber : 1
+                            let pageSize = parseInt(process.env.pageSize)
                             if(storeItems.length > 0) {
-                                for(let i = 0; i < storeItems.length; i++) {
+                                for (let i = pageSize * (pageNumber - 1); i < (storeItems.length <= pageSize ? storeItems.length : pageSize); i++) {
                                     let templateItem = await db.getDB().collection('templateItems').findOne({
                                         _id: ObjectId(storeItems[i].templateItemId)
                                     })
@@ -128,6 +129,8 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                         }]
                                     ).send()
                                 }
+                                data.data.pageNumber = pageNumber + 1
+                                await data.cacheState()
                             } else {
                                 // todo := reply saying no items found
                                 // messageToSend = new Message(
