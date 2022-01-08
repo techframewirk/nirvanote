@@ -5,6 +5,7 @@ const { ObjectId } = require('mongodb')
 const collectionName = 'templateItems'
 
 const templateItemSchema = joi.object({
+    _id: joi.string().optional(),
     numId: joi.number().required(),
     name: joi.string().required(),
     description: joi.string().required(),
@@ -44,7 +45,7 @@ class TemplateItem {
 
     async find(){
         try {
-            let result = await db.getDB().collection(collectionName).find()
+            let result = await db.getDB().collection(collectionName).find().toArray()
             return result
         } catch (err) {
             throw err
@@ -74,6 +75,7 @@ class TemplateItem {
     async update(updateData) {
         try {
             let validatedData = await templateItemSchema.validateAsync(updateData)
+            delete validatedData._id
             let result = await db.getDB().collection(collectionName).updateOne({ _id: ObjectId(this._id) }, { $set: validatedData })
             return result
         } catch (err) {
