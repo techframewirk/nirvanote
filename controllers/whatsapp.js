@@ -1,9 +1,12 @@
 const whatsapp = require('../utils/whatsapp')
 const cache = require('../utils/cache')
 const { CachedState, Message } = require('../utils/classes')
+const { languages } = require('../utils/constants')
+const translate = require('../utils/translator')
 
 const stateMessage = {
-    '00001': 'storeName',
+    '00001': 'preferredLanguage',
+    '00002': 'storeName',
 }
 
 const handleTextMessage = async (message, contact, cachedData) => {
@@ -11,7 +14,7 @@ const handleTextMessage = async (message, contact, cachedData) => {
         let data = new CachedState(cachedData.number, cachedData.state, cachedData.data)
         let messageToSend = null
         switch(data.state) {
-            case '00001':
+            case '00002':
                 console.log('First')
                 data.clearAllCache()
                 break
@@ -40,8 +43,36 @@ const handleButtonMessage = async (message, contact, cachedData) => {
         let messageToSend = null
         switch(data.state) {
             case '00001':
-                console.log(message)
-                data.clearAllCache()
+                data.data = {}
+                switch(message.button.text) {
+                    case 'Kannada':
+                        data.data.preferredLanguage = languages.kannada
+                        break
+                    case 'English':
+                        data.data.preferredLanguage = languages.english
+                        break
+                }
+                data.state = '00002'
+                data.cacheState()
+                let languageString = "English"
+                if (data.data.preferredLanguage != languages.english) {
+                    languageString = await translate(message.button.text, data.data.preferredLanguage)
+                }
+                messageToSend = new Message(
+                    message.from,
+                    'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                    'whats_your_name',
+                    data.data.preferredLanguage,
+                    [{
+                        "type": "body",
+                        "parameters": [
+                            {
+                                "type": "text",
+                                "text": languageString
+                            }
+                        ]
+                    }]
+                )
                 break
         }
         if (messageToSend != null) {

@@ -12,6 +12,7 @@ class Message {
 
     async send() {
         try {
+            console.log("*****Send Message*****")
             let messageJSON = {}
             messageJSON.to = this.recepient
             if (this.namespace != null) {
@@ -24,7 +25,11 @@ class Message {
                         policy: 'deterministic'
                     },
                 }
+                if (this.components != null) {
+                    messageJSON.template.components = this.components
+                }
             }
+            console.log(JSON.stringify(messageJSON))
             await sendMessage(messageJSON)
         } catch (err) {
             console.log(err)
