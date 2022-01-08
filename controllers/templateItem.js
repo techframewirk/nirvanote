@@ -63,8 +63,19 @@ exports.addBulkProductsFromExcelFile = async (req, res) => {
 
 exports.getAllProducts = async (req, res) => {
   try {
+    let { page, size ,search,searchBy } = req.query
     let templateItem = new TemplateItem();
-    let result = await templateItem.find();
+    let query = {}
+    page = page ? parseInt(page) : 1
+    size = size ? parseInt(size) : 20
+    let options = {
+      limit:  size,
+      skip:(page - 1) * (size)
+    }
+    if(search) {
+      query[searchBy] = { $regex: search, $options: "i" }
+    }
+    let result = await templateItem.find(query,options);
     return res.status(200).json({
       result,
       message: "Products retrieved successfully",
