@@ -342,9 +342,17 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                         messageToSend = new Message(
                             message.from,
                             'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                            'item_added',
+                            'add_sucess',
                             data.data.preferredLanguage,
-                            null
+                            [{
+                                "type": "body",
+                                "parameters": [
+                                    {
+                                        "type": "text",
+                                        "text": `${templateItem.name}`
+                                    }
+                                ]
+                            }]
                         )
                     } else {
                         data.state = '00008'
