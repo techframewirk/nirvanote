@@ -70,15 +70,56 @@ const handleTextMessage = async (message, contact, cachedData) => {
                     )
                     break
                 default:
-                    messageToSend = new Message(
-                        message.from,
-                        'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                        'welcome_to_patti2',
-                        'en',
-                        null
+                    let storedStore = await storeModel.getStoreUsingKeyAndValue(
+                        'mobile',
+                        message.from
                     )
-                    let newCache = new CachedState(message.from, '00001', {})
-                    await newCache.cacheState()
+                    if(storedStore != null) {
+                        console.log(storedStore)
+                        let newCache = new CachedState(
+                            message.from,
+                            '00005',
+                            {
+                                preferredLanguage: storedStore.preferredLanguage,
+                                name: storedStore.name,
+                                storeName: storedStore.storeName,
+                                storeLocation: storedStore.storeLocation
+                            })
+                        await newCache.cacheState()
+                        await new Message(
+                            message.from,
+                            'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            'welcome_back_message',
+                            newCache.data.preferredLanguage,
+                            [{
+                                "type": "body",
+                                "parameters": [
+                                    {
+                                        "type": "text",
+                                        "text": newCache.data.name
+                                    }
+                                ]
+                            }]
+                        ).send()
+                        messageToSend = messageToSend = new Message(
+                            message.from,
+                            'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            'patti_menu',
+                            data.data.preferredLanguage,
+                            null
+                        )
+                    } else {
+                        messageToSend = new Message(
+                            message.from,
+                            'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            'welcome_to_patti2',
+                            'en',
+                            null
+                        )
+                        let newCache = new CachedState(message.from, '00001', {})
+                        await newCache.cacheState()
+                    }
+                    
             }
             if (messageToSend != null) {
                 messageToSend.send()
