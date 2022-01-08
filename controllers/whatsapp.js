@@ -21,6 +21,7 @@ const stateMessage = {
     '00007': 'receiveVoicePrice',
     '00008': 'processNewItemTemplate',
     '00010': 'listItems',
+    '00011': 'updatePrice',
 }
 
 const handleTextMessage = async (message, contact, cachedData) => {
@@ -104,6 +105,7 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                 null
                             ).send()
                             data.data.operation = 'update'
+                            await data.cacheState()
                             // Intentional fall through
                         case '3':
                             data.state = '00010'
@@ -159,6 +161,25 @@ const handleTextMessage = async (message, contact, cachedData) => {
                             break
                         default:
                             console.log("Not a valid option")
+                    }
+                    break
+                case '00011':
+                    let updatedPrice = parseInt(message.text.body)
+                    if(!isNaN(updatedPrice)) {
+                        await db.getDB().collection('items').updateOne({
+                            _id: ObjectId(data.data.toUpdateItemId)
+                        }, {
+                            $set: {
+                                price: updatedPrice
+                            }
+                        })
+                        messageToSend = new Message(
+                            message.from,
+                            'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            'update_success',
+                            data.data.preferredLanguage,
+                            null
+                        )
                     }
                     break
                 default:
@@ -268,26 +289,43 @@ const handleButtonMessage = async (message, contact, cachedData) => {
                 )
                 break
             case '00010':
-                if(data.data.operation == 'update') {
-                    await new Message(
-                        message.from,
-                        'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                        'price_voicenote',
-                        data.data.preferredLanguage,
-                        null
-                    )
-                    data.state = '00011'
-                    await data.cacheState()
-                }
-                break
-            default:
                 let messageId = message.context.id
-                console.log(messageId)
-                console.log(data.data.messageItemMap)
                 let itemDocId = data.data.messageItemMap[messageId]
                 let itemDocument = await db.getDB().collection('items').findOne({
                     _id: ObjectId(itemDocId)
                 })
+                let templateDocument = await db.getDB().collection('templateItems').findOne({
+                    _id: ObjectId(itemDocument.templateItemId)
+                })
+                if(data.data.operation == 'update' && itemDocument != null) {
+                    await new Message(
+                        message.from,
+                        'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                        'update_price_template',
+                        data.data.preferredLanguage,
+                        [{
+                            "type": "body",
+                            "parameters": [
+                                {
+                                    "type": "text",
+                                    "text": templateDocument.name
+                                }]
+                        }]
+                    ).send()
+                    data.state = '00011'
+                    data.data.toUpdateItemId = itemDocument._id.toString()
+                    await data.cacheState()
+                }
+                break
+            default:
+                // let messageId = message.context.id
+                // console.log(messageId)
+                // console.log(data.data.messageItemMap)
+                // let itemDocId = data.data.messageItemMap[messageId]
+                // let itemDocument = await db.getDB().collection('items').findOne({
+                //     _id: ObjectId(itemDocId)
+                // })
+                console.log('Error in Button')
         }
         if (messageToSend != null) {
             messageToSend.send()
