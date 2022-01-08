@@ -21,6 +21,7 @@ let db = require('./utils/db')
 let s3 = require('./utils/s3')
 let cache = require('./utils/cache')
 let whatsapp = require('./utils/whatsapp')
+let { CachedState } = require('./utils/classes')
 
 app.post('/', async(req, res, next) => {
     try {
@@ -95,6 +96,25 @@ app.get('/get-file', async(req, res, next) => {
 })
 
 app.post(`/webhook/whatsapp/${process.env.WHATSAPP_WEBHOOK_SECRET}`, whatsapp.listenToWhatsapp)
+
+app.post('/test', async (req, res, next) => {
+    try {
+        let cacheState = new CachedState(
+            '919482466762',
+            'nameRequested',
+            {
+                'test': 'test'
+            }
+        )
+        await cacheState.cacheState()
+        await cacheState.getStateFromCache()
+        res.status(200).json({
+            message: 'success'
+        })
+    } catch (e) {
+        console.log(e)
+    }
+})
 
 db.establishConnection( async () => {
     try {

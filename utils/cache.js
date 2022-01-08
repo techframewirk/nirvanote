@@ -34,9 +34,31 @@ const getValueFromCache = async (key) => {
     }
 }
 
+const setHashInCache = async (hash, data) => {
+    try {
+        await Object.entries(data).forEach(async ([key, value]) => {
+            await client.hSet(hash, key, value)
+        })
+    } catch (err) {
+        throw err
+    }
+}
+
+const getHashFromCache = async (hash) => {
+    try {
+        let tempValue = await client.HGETALL(hash)
+        let value = JSON.parse(JSON.stringify(tempValue))
+        return value
+    } catch (err) {
+        throw err
+    }
+}
+
 module.exports = {
     cacheConstants,
     initiateConnection,
     cacheKeyValue,
-    getValueFromCache
+    getValueFromCache,
+    setHashInCache,
+    getHashFromCache
 }

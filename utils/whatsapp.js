@@ -63,6 +63,7 @@ const listenToWhatsapp = async (req, res) => {
                 message: message,
                 timestamp: new Date()
             })
+            let cache = await cache.getValueFromCache(`${message.from}`)
             switch(message.type) {
                 case 'text':
                     console.log('Text received')
