@@ -31,7 +31,8 @@ class Message {
                 }
             }
             console.log(JSON.stringify(messageJSON))
-            await sendMessage(messageJSON)
+            let msgId = await sendMessage(messageJSON)
+            return msgId
         } catch (err) {
             console.log(err)
         }

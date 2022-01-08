@@ -11,8 +11,9 @@ const sendMessage = async (message) => {
                 'Content-Type': 'application/json'
             }
         })
-        if(response.status === 200) {
+        if(response.status === 201) {
             console.log('Message sent successfully!')
+            return response.data.messages[0].id
         }
     } catch (err) {
         console.log(err.response.data)

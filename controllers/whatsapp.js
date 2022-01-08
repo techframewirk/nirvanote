@@ -103,6 +103,7 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                 data.data.preferredLanguage,
                                 null
                             ).send()
+                            data.data.operation = 'update'
                             // Intentional fall through
                         case '3':
                             data.state = '00010'
@@ -112,11 +113,12 @@ const handleTextMessage = async (message, contact, cachedData) => {
                             let pageNumber = data.data.pageNumber ? data.data.pageNumber : 1
                             let pageSize = parseInt(process.env.pageSize)
                             if(storeItems.length > 0) {
+                                let messageItemMap = data.data.messageItemMap ? data.data.messageItemMap : {}
                                 for (let i = pageSize * (pageNumber - 1); i < (storeItems.length <= pageSize ? storeItems.length : pageSize); i++) {
                                     let templateItem = await db.getDB().collection('templateItems').findOne({
                                         _id: ObjectId(storeItems[i].templateItemId)
                                     })
-                                    await new Message(
+                                    let messageId = await new Message(
                                         message.from,
                                         'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
                                         'listing_item_detail',
@@ -139,15 +141,19 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                             ]
                                         }]
                                     ).send()
+                                    messageItemMap[messageId] = storeItems[i]._id.toString()
                                 }
                                 data.data.pageNumber = pageNumber + 1
+                                data.data.messageItemMap = messageItemMap
                                 await data.cacheState()
                             } else {
-                                // todo := reply saying no items found
-                                // messageToSend = new Message(
-                                //     message.from,
-                                //     'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                                // )
+                                messageToSend = new Message(
+                                    message.from,
+                                    'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                                    'empty_items_template',
+                                    data.data.preferredLanguage,
+                                    null
+                                )
                                 await data.clearAllCache()
                             }
                             break
@@ -261,6 +267,27 @@ const handleButtonMessage = async (message, contact, cachedData) => {
                     }]
                 )
                 break
+            case '00010':
+                if(data.data.operation == 'update') {
+                    await new Message(
+                        message.from,
+                        'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                        'price_voicenote',
+                        data.data.preferredLanguage,
+                        null
+                    )
+                    data.state = '00011'
+                    await data.cacheState()
+                }
+                break
+            default:
+                let messageId = message.context.id
+                console.log(messageId)
+                console.log(data.data.messageItemMap)
+                let itemDocId = data.data.messageItemMap[messageId]
+                let itemDocument = await db.getDB().collection('items').findOne({
+                    _id: ObjectId(itemDocId)
+                })
         }
         if (messageToSend != null) {
             messageToSend.send()
@@ -369,7 +396,6 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                     await data.cacheState()
                     emptyMessage.send()
                 }
-                // console.log(matches)
                 break
             case '00007':
                 let detectedWords = await stt.convertToText(data.data.filepath)
