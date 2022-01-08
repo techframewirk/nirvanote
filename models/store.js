@@ -1,21 +1,23 @@
 const joi = require('joi')
 const db = require('../utils/db')
+const { UserAlreadyExistsError } = require('../utils/errors')
 
 const collectionName = 'stores'
 
 const storeSchema = joi.object({
     name: joi.string().required(),
+    storeName: joi.string().required(),
     mobile: joi.string().regex(/^[0-9]{12}$/).required(),
     location: joi.string().required(),
-    preferredLanguage: joi.string().allow('english', 'kannada').required(),
+    preferredLanguage: joi.string().allow("kn", "en").required(),
 })
 
-const addStore = (store) => {
+const addStore = async (store) => {
     try {
         let validatedData = await storeSchema.validateAsync(store)
         let count = await db.getDB().collection(collectionName).countDocuments({ mobile: validatedData.mobile })
         if (count > 0) {
-            throw new Error('Store with this mobile number already exists')
+            throw new UserAlreadyExistsError(`User with mobile ${validatedData.mobile} already exists`)
         } else {
             let result = await db.getDB().collection(collectionName).insertOne(validatedData)
             return result.insertedId

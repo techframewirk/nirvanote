@@ -3,6 +3,8 @@ const cache = require('../utils/cache')
 const { CachedState, Message } = require('../utils/classes')
 const { languages } = require('../utils/constants')
 const { translateText, detectLanguage } = require('../utils/translator')
+const storeModel = require('../models/store')
+const { UserAlreadyExistsError } = require('../utils/errors')
 
 const stateMessage = {
     '00001': 'preferredLanguageRequest',
@@ -153,6 +155,21 @@ const handleLocationMessage = async (message, contact, cachedData) => {
                     data.data.preferredLanguage,
                     null
                 )
+                try {
+                    await storeModel.addStore({
+                        name: data.data.name,
+                        storeName: data.data.storeName,
+                        mobile: data.number,
+                        location: data.data.storeLocation,
+                        preferredLanguage: data.data.preferredLanguage
+                    })
+                } catch (err) {
+                    if(err instanceof UserAlreadyExistsError) {
+                        console.log('User already exists')
+                    } else {
+                        console.log(err)
+                    }
+                }
                 break
         }
         if (messageToSend != null) {
