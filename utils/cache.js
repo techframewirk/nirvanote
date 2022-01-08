@@ -1,7 +1,7 @@
 const { createClient } = require('redis')
 
 let client = createClient({
-    url: 'redis://192.168.0.15:6379'
+    url: process.env.REDISURL
 })
 
 const cacheConstants = {
