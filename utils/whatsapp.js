@@ -2,6 +2,8 @@ const axios = require('axios').default
 const cache = require('./cache')
 let fs = require('fs')
 let request = require('request')
+const { CachedState } = require('../utils/classes')
+const { handleTextMessage } = require('../controllers/whatsapp')
 
 const messageModel = require('../models/messages')
 
@@ -63,10 +65,10 @@ const listenToWhatsapp = async (req, res) => {
                 message: message,
                 timestamp: new Date()
             })
-            let cache = await cache.getValueFromCache(`${message.from}`)
+            let cachedData = await new CachedState(message.from).getStateFromCache()
             switch(message.type) {
                 case 'text':
-                    console.log('Text received')
+                    handleTextMessage(message, contact, cachedData)
                     break
                 case 'image':
                     let path = await downloadMedia(message)

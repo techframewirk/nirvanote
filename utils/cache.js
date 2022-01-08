@@ -54,11 +54,20 @@ const getHashFromCache = async (hash) => {
     }
 }
 
+const clearCacheUsingKey = async (key) => {
+    try {
+        await client.DEL(key)
+    } catch (err) {
+        throw err
+    }
+}
+
 module.exports = {
     cacheConstants,
     initiateConnection,
     cacheKeyValue,
     getValueFromCache,
     setHashInCache,
-    getHashFromCache
+    getHashFromCache,
+    clearCacheUsingKey
 }

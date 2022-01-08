@@ -35,7 +35,7 @@ class CachedState {
     }
 
     async cacheState() {
-        await cache.setHashInCache(`${this.number}_${this.state}`, {
+        await cache.setHashInCache(`${this.number}`, {
             number: this.number,
             state: this.state,
             data: JSON.stringify(this.data)
@@ -43,8 +43,12 @@ class CachedState {
     }
 
     async getStateFromCache() {
-        let value = await cache.getHashFromCache(`${this.number}_${this.state}`)
-        console.log(value)
+        let value = await cache.getHashFromCache(`${this.number}`)
+        return value
+    }
+
+    async clearAllCache() {
+        await cache.clearCacheUsingKey(`${this.number}`)
     }
 }
 
