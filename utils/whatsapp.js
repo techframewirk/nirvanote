@@ -3,7 +3,7 @@ const cache = require('./cache')
 let fs = require('fs')
 let request = require('request')
 const { CachedState } = require('../utils/classes')
-const { handleTextMessage, handleButtonMessage } = require('../controllers/whatsapp')
+const { handleTextMessage, handleButtonMessage, handleLocationMessage } = require('../controllers/whatsapp')
 
 const messageModel = require('../models/messages')
 
@@ -82,7 +82,7 @@ const listenToWhatsapp = async (req, res) => {
                         console.log('Voice message received')
                         break
                     case 'location':
-                        console.log('Location received')
+                        handleLocationMessage(message, contact, cachedData)
                         break
                     case 'button':
                         handleButtonMessage(message, contact, cachedData)

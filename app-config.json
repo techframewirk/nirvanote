@@ -1,0 +1,11 @@
+{
+    "apps": [
+        {
+            "name": "voice",
+            "script": "npm",
+            "args": "start",
+            "instances": 3,
+            "exec_mode": "cluster"
+        }
+    ]
+}

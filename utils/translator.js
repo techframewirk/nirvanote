@@ -11,4 +11,17 @@ const translateText = async (text, targetLanguage) => {
     }
 }
 
-module.exports = translateText
+const detectLanguage = async (text) => {
+    try {
+        let [detections] = await translate.detect(text)
+        console.log(detections)
+        return detections
+    } catch (err) {
+        throw err
+    }
+}
+
+module.exports = {
+    translateText,
+    detectLanguage
+}

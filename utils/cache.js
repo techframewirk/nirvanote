@@ -1,7 +1,7 @@
 const { createClient } = require('redis')
 
 let client = createClient({
-    url: process.env.REDISURL
+    url: process.env.REDIS
 })
 
 const cacheConstants = {
