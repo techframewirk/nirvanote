@@ -22,6 +22,7 @@ const stateMessage = {
     '00008': 'processNewItemTemplate',
     '00010': 'listItems',
     '00011': 'updatePrice',
+    '00012': 'deleteItem'
 }
 
 const handleTextMessage = async (message, contact, cachedData) => {
@@ -107,6 +108,17 @@ const handleTextMessage = async (message, contact, cachedData) => {
                             data.data.operation = 'update'
                             await data.cacheState()
                             // Intentional fall through
+                        case '4':
+                            if(data.data.operation != 'update') {
+                                data.state = '00010'
+                                data.data.operation = 'delete'
+                                await data.cacheState()
+                                // todo := send delete message
+                                // await new Message(
+                                //     message.from,
+                                //     'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                                // )
+                            }
                         case '3':
                             data.state = '00010'
                             let storeItems = await db.getDB().collection('items').find({
@@ -315,7 +327,38 @@ const handleButtonMessage = async (message, contact, cachedData) => {
                     data.state = '00011'
                     data.data.toUpdateItemId = itemDocument._id.toString()
                     await data.cacheState()
+                } else if (data.data.operation == 'delete' && itemDocument != null) {
+                    await new Message(
+                        message.from,
+                        'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                        'delete_confirmation',
+                        data.data.preferredLanguage,
+                        [{
+                            "type": "body",
+                            "parameters": [
+                                {
+                                    "type": "text",
+                                    "text": templateDocument.name
+                                }]
+                        }]
+                    ).send()
+                    data.state = '00012'
+                    data.data.toDeleteItemId = itemDocument._id.toString()
+                    await data.cacheState()
                 }
+                break
+            case '00012':
+                await db.getDB().collection('items').deleteOne({
+                    _id: ObjectId(data.data.toDeleteItemId)
+                })
+                await new Message(
+                    message.from,
+                    'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                    'delete_success',
+                    data.data.preferredLanguage,
+                    null
+                ).send()
+                data.clearAllCache()
                 break
             default:
                 // let messageId = message.context.id
