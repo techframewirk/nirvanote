@@ -15,7 +15,7 @@ const itemSchema = joi.object({
 })
 
 class Item {
-    constructor(_id, templateItemId, store, price, quantity, audio) {
+    constructor(templateItemId, store, price, quantity, audio, _id) {
         this._id = _id
         this.templateItemId = templateItemId
         this.store = store

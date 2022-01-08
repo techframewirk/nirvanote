@@ -8,6 +8,8 @@ const { UserAlreadyExistsError } = require('../utils/errors')
 const sendMessage = require('../utils/sendMessage')
 const stt = require('../utils/stt')
 let db = require('../utils/db')
+const { ObjectId } = require('mongodb')
+const Items = require('../models/Items')
 
 const stateMessage = {
     '00001': 'preferredLanguageRequest',
@@ -102,6 +104,7 @@ const handleTextMessage = async (message, contact, cachedData) => {
                             '00005',
                             {
                                 preferredLanguage: storedStore.preferredLanguage,
+                                storeId: storedStore._id.toString(),
                                 name: storedStore.name,
                                 storeName: storedStore.storeName,
                                 storeLocation: storedStore.storeLocation
@@ -314,10 +317,42 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                         data.data.price = price
                         data.state = '00009'
                         await data.cacheState()
+                        let templateItem = await db.getDB().collection('templateItems').findOne({
+                            _id: ObjectId(data.data.selectedItem)
+                        })
+                        if(!templateItem.prices.includes(price)){
+                            templateItem.prices.push(price)
+                            delete templateItem._id
+                            await db.getDB().collection('templateItems').updateOne({
+                                _id: ObjectId(data.data.selectedItem)
+                            }, {
+                                $set: {
+                                    prices: templateItem.prices
+                                }
+                            })
+                        }
+                        let newItem = new Items(
+                            data.data.selectedItem,
+                            data.data.storeId,
+                            price,
+                            12,
+                            data.data.filekey
+                        )
+                        await newItem.save()
                         messageToSend = new Message(
                             message.from,
                             'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
                             'item_added',
+                            data.data.preferredLanguage,
+                            null
+                        )
+                    } else {
+                        data.state = '00008'
+                        await data.cacheState()
+                        messageToSend = new Message(
+                            message.from,
+                            'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            'item_unidentified',
                             data.data.preferredLanguage,
                             null
                         )
