@@ -56,32 +56,38 @@ const setWhatsappWebhook = async () => {
 const listenToWhatsapp = async (req, res) => {
     try {
         let messageData = req.body
-        for (let i = 0; i < messageData.messages.length; i++) {
-            let contact = messageData.contacts[i]
-            let message = messageData.messages[i]
-            messageModel.addMessage({
-                type: 'received',
-                with: message.from,
-                message: message,
-                timestamp: new Date()
-            })
-            let cachedData = await new CachedState(message.from).getStateFromCache()
-            switch(message.type) {
-                case 'text':
-                    handleTextMessage(message, contact, cachedData)
-                    break
-                case 'image':
-                    let path = await downloadMedia(message)
-                    console.log(path)
-                    console.log('Image received')
-                    break
-                case 'voice':
-                    downloadMedia(message)
-                    console.log('Voice message received')
-                    break
-                case 'location':
-                    console.log('Location received')
-                    break
+        console.log(messageData)
+        if (messageData.messages) {
+            for (let i = 0; i < messageData.messages.length; i++) {
+                let contact = messageData.contacts[i]
+                let message = messageData.messages[i]
+                messageModel.addMessage({
+                    type: 'received',
+                    with: message.from,
+                    message: message,
+                    timestamp: new Date()
+                })
+                let cachedData = await new CachedState(message.from).getStateFromCache()
+                switch(message.type) {
+                    case 'text':
+                        handleTextMessage(message, contact, cachedData)
+                        break
+                    case 'image':
+                        let path = await downloadMedia(message)
+                        console.log(path)
+                        console.log('Image received')
+                        break
+                    case 'voice':
+                        downloadMedia(message)
+                        console.log('Voice message received')
+                        break
+                    case 'location':
+                        console.log('Location received')
+                        break
+                    case 'button':
+                        console.log('Button received')
+                        break   
+                }
             }
         }
         res.status(200).json({
@@ -124,25 +130,37 @@ const downloadMedia = async (message) => {
     }
 }
 
-const sendMessage = async (message) => {
+// const sendMessage = async (message) => {
+//     try {
+//         let response = await axios.post(`${process.env.WHATSAPP_URL}/v1/messages`, message, {
+//             headers: {
+//                 'Authorization': `Bearer ${token}`,
+//                 'Content-Type': 'application/json'
+//             }
+//         })
+//         if(response.status === 200) {
+//             console.log('Message sent successfully!')
+//         }
+//     } catch (err) {
+//         throw err
+//     }
+// }
+
+const getToken = async () => {
     try {
-        let response = await axios.post(`${process.env.WHATSAPP_URL}/v1/messages`, message, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        if(response.status === 200) {
-            console.log('Message sent successfully!')
+        if(token == null) {
+            throw new Error('Token not found')
+        } else {
+            return token
         }
     } catch (err) {
-        throw err
+        console.log(err)
     }
 }
 
 module.exports = {
     authenticateWithWhatsapp,
     setWhatsappWebhook,
-    sendMessage,
-    listenToWhatsapp
+    listenToWhatsapp,
+    getToken
 }

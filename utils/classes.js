@@ -1,4 +1,4 @@
-const { sendMessage } = require('./whatsapp')
+const sendMessage = require('./sendMessage')
 const cache = require('../utils/cache')
 
 class Message {
@@ -12,7 +12,20 @@ class Message {
 
     async send() {
         try {
-            // todo := send message
+            let messageJSON = {}
+            messageJSON.to = this.recepient
+            if (this.namespace != null) {
+                messageJSON.type = 'template'
+                messageJSON.template = {
+                    namespace: this.namespace,
+                    name: this.name,
+                    language: {
+                        code: this.languageCode,
+                        policy: 'deterministic'
+                    },
+                }
+            }
+            await sendMessage(messageJSON)
         } catch (err) {
             console.log(err)
         }
