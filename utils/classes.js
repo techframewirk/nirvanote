@@ -13,6 +13,7 @@ class Message {
     async send() {
         try {
             console.log("*****Send Message*****")
+            console.log(this.languageCode)
             let messageJSON = {}
             messageJSON.to = this.recepient
             if (this.namespace != null) {

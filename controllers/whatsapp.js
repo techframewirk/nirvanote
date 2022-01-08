@@ -5,11 +5,14 @@ const { languages } = require('../utils/constants')
 const { translateText, detectLanguage } = require('../utils/translator')
 const storeModel = require('../models/store')
 const { UserAlreadyExistsError } = require('../utils/errors')
+const sendMessage = require('../utils/sendMessage')
 
 const stateMessage = {
     '00001': 'preferredLanguageRequest',
-    '00002': 'storeNameAndStoreName Request',
-    '00003': 'storeAddressRequest',
+    '00002': 'storeNameAndStoreNameRequest',
+    '00003': 'storeNameAndRequestLocation',
+    '00004': 'storeLocationAndRedirectUserToMenu',
+    '00005': 'initiateRoutingAsPerNeed'
 }
 
 const handleTextMessage = async (message, contact, cachedData) => {
@@ -69,13 +72,29 @@ const handleTextMessage = async (message, contact, cachedData) => {
                         }]
                     )
                     break
+                case '00005':
+                    switch(message.text.body) {
+                        case '1':
+                            data.state = '00006'
+                            await data.cacheState()
+                            sendMessage = new Message(
+                                message.from,
+                                'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                                'receive_voice_item',
+                                data.data.preferredLanguage,
+                                null
+                            )
+                            break
+                        default:
+                            console.log("Not a valid option")
+                    }
+                    break
                 default:
                     let storedStore = await storeModel.getStoreUsingKeyAndValue(
                         'mobile',
                         message.from
                     )
                     if(storedStore != null) {
-                        console.log(storedStore)
                         let newCache = new CachedState(
                             message.from,
                             '00005',
@@ -101,13 +120,14 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                 ]
                             }]
                         ).send()
-                        messageToSend = messageToSend = new Message(
+                        messageToSend = new Message(
                             message.from,
                             'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
                             'patti_menu',
-                            data.data.preferredLanguage,
+                            storedStore.preferredLanguage,
                             null
                         )
+                        console.log('**ccd')
                     } else {
                         messageToSend = new Message(
                             message.from,
@@ -134,7 +154,11 @@ const handleButtonMessage = async (message, contact, cachedData) => {
     try {
         let data = new CachedState(cachedData.number, cachedData.state, cachedData.data)
         let messageToSend = null
-        if (message.button.text.toLowerCase() == 'exit') {
+        let exitString = 'exit'
+        if(cachedData.data.preferredLanguage != languages.english) {
+            exitString = await translateText(message.button.text, languages.english)
+        }
+        if (exitString.toLowerCase() == 'exit') {
             await data.clearAllCache()
         } else {}
         switch(data.state) {
