@@ -104,9 +104,6 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                     let templateItem = await db.getDB().collection('templateItems').findOne({
                                         _id: ObjectId(storeItems[i].templateItemId)
                                     })
-                                    console.log(storeItems[i].templateItemId)
-                                    console.log(templateItem.name)
-                                    console.log(storeItems[i].price)
                                     await new Message(
                                         message.from,
                                         'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
