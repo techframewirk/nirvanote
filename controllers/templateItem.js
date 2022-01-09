@@ -43,19 +43,11 @@ exports.addBulkProductsFromExcelFile = async (req, res) => {
         image,
       }));
       let uploadedPrices = await new TemplateItem().saveMany(prices);
-      if (uploadedPrices?.length) {
-        return res.json({
-          message: `Added ${uploadedPrices?.length} products successfully`,
-          success: true,
-          result: null,
-        });
-      } else {
-        return res.status(400).json({
-          message: "Something went wrong while uploading products",
-          success: false,
-          result: null,
-        });
-      }
+      return res.json({
+        message: `Added products successfully`,
+        success: true,
+        result: uploadedPrices,
+      });
     } else {
       return res.status(400).json({
         message: "Excel file is required",
@@ -72,11 +64,33 @@ exports.addBulkProductsFromExcelFile = async (req, res) => {
 };
 
 exports.getAllProducts = async (req, res) => {
-  return res.json({
-    result: [],
-    message: "Retrieved products successfully",
-    success: true,
-  });
+  try {
+    let { page, size ,search,searchBy } = req.query
+    let templateItem = new TemplateItem();
+    let query = {}
+    page = page ? parseInt(page) : 1
+    size = size ? parseInt(size) : 20
+    let options = {
+      limit:  size,
+      skip:(page - 1) * (size)
+    }
+    if(search) {
+      query[searchBy] = { $regex: search, $options: "i" }
+    }
+    let result = await templateItem.find(query,options);
+    return res.status(200).json({
+      result,
+      message: "Products retrieved successfully",
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({
+      message: "Something went wrong",
+      success: false,
+      result: error,
+    });
+  }
 };
 
 exports.getSingleProduct = async (req, res) => {

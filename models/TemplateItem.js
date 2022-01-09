@@ -43,9 +43,9 @@ class TemplateItem {
         }
     }
 
-    async find(){
+    async find(query,options){
         try {
-            let result = await db.getDB().collection(collectionName).find().toArray()
+            let result = await db.getDB().collection(collectionName).find(query,options).toArray()
             return result
         } catch (err) {
             throw err
