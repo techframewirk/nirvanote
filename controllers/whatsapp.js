@@ -570,7 +570,7 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                     let price = parseInt(detectedWords)
                     if(!isNaN(price)) {
                         data.data.price = price
-                        data.state = '00009'
+                        data.state = '00005'
                         await data.cacheState()
                         let templateItem = await db.getDB().collection('templateItems').findOne({
                             _id: ObjectId(data.data.selectedItem)
@@ -594,20 +594,27 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                             data.data.filekey
                         )
                         await newItem.save()
+                        // messageToSend = new Message(
+                        //     message.from,
+                        //     'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                        //     'add_sucess',
+                        //     data.data.preferredLanguage,
+                        //     [{
+                        //         "type": "body",
+                        //         "parameters": [
+                        //             {
+                        //                 "type": "text",
+                        //                 "text": `${templateItem.name}`
+                        //             }
+                        //         ]
+                        //     }]
+                        // )
                         messageToSend = new Message(
                             message.from,
                             'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                            'add_sucess',
+                            'patti_menu',
                             data.data.preferredLanguage,
-                            [{
-                                "type": "body",
-                                "parameters": [
-                                    {
-                                        "type": "text",
-                                        "text": `${templateItem.name}`
-                                    }
-                                ]
-                            }]
+                            null
                         )
                     } else {
                         data.state = '00007'
@@ -652,14 +659,23 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                                 12,
                                 data.data.filekey
                             ).save()
+                            // messageToSend = new Message(
+                            //     message.from,
+                            //     'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            //     'update_success',
+                            //     data.data.preferredLanguage,
+                            //     null
+                            // )
                             messageToSend = new Message(
                                 message.from,
                                 'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                                'update_success',
+                                'patti_menu',
                                 data.data.preferredLanguage,
                                 null
                             )
-                            await data.clearAllCache()
+                            // await data.clearAllCache()
+                            data.state = '00005'
+                            await data.cacheState()
                         }
                     } else {
                         data.state = '00014'
