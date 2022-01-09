@@ -68,6 +68,7 @@ const handleTextMessage = async (message, contact, cachedData) => {
                     }
                     data.state = '00004'
                     await data.cacheState()
+                    // todo := change template when approved
                     messageToSend = new Message(
                         message.from,
                         'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
@@ -115,7 +116,6 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                 data.state = '00010'
                                 data.data.operation = 'delete'
                                 await data.cacheState()
-                                // todo := send delete message
                                 await new Message(
                                     message.from,
                                     'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
@@ -124,6 +124,7 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                     null
                                 )
                             }
+                            // Intentional fall through
                         case '3':
                             data.state = '00010'
                             let storeItems = await db.getDB().collection('items').find({
