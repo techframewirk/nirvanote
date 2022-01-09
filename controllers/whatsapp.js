@@ -116,10 +116,13 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                 data.data.operation = 'delete'
                                 await data.cacheState()
                                 // todo := send delete message
-                                // await new Message(
-                                //     message.from,
-                                //     'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                                // )
+                                await new Message(
+                                    message.from,
+                                    'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                                    'delete_message_init',
+                                    data.data.preferredLanguage,
+                                    null
+                                )
                             }
                         case '3':
                             data.state = '00010'
