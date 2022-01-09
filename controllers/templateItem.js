@@ -7,6 +7,8 @@ const path = require("path");
 const multer = require("multer");
 const TemplateItem = require("../models/TemplateItem");
 const { getSignedURLFromS3, deleteFileFromS3 } = require("../utils/s3");
+const { getStoresByLocation } = require("../models/store");
+const { findUsingKeyAndValue } = require("../models/Items");
 
 const storage = multer.diskStorage({
   destination: "./uploads",
@@ -140,4 +142,14 @@ exports.deleteProduct = async (req, res) => {
       .status(500)
       .json({ message: "Something went wrong", success: false, result: error });
   }
+};
+
+exports.getStoreByLocation = async () => {
+  let stores = await getStoresByLocation(
+    { min: 12.9, max: 12.9135 },
+    { min: 77.61, max: 77.67 }
+  );
+  let storeIds = stores.map(store => store._id);
+
+  let items = await findUsingKeyAndValue("store", {$in: storeIds})
 };

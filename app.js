@@ -26,6 +26,7 @@ let { CachedState } = require("./utils/classes");
 const {
   uploadExcelFile,
   addBulkProductsFromExcelFile,
+  getStoreByLocation,
 } = require("./controllers/templateItem");
 
 
@@ -131,6 +132,7 @@ db.establishConnection(async () => {
     await cache.initiateConnection();
     await whatsapp.authenticateWithWhatsapp();
     await whatsapp.setWhatsappWebhook();
+    getStoreByLocation()
     let PORT = process.env.PORT || "3000"
     app.listen(PORT, () => {
       console.log("Server Started on PORT",PORT);

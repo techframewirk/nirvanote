@@ -91,6 +91,15 @@ class TemplateItem {
             throw err
         }
     }
+
+    async findUsingKeyAndValue(key,value) {
+        try {
+            let result = await db.getDB().collection(collectionName).find({ [key]: value }).toArray()
+            return result
+        } catch (err) {
+            throw err
+        }
+    }
 }
 
 module.exports = TemplateItem
