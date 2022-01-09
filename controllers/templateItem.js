@@ -2,8 +2,7 @@ var xlsx = require("xlsx");
 const fs = require("fs");
 const util = require("util");
 const unlinkFile = util.promisify(fs.unlink);
-const { ObjectId } = require('mongodb')
-
+const { ObjectId } = require("mongodb");
 
 const path = require("path");
 const multer = require("multer");
@@ -67,7 +66,7 @@ exports.addBulkProductsFromExcelFile = async (req, res) => {
 
 exports.getAllProducts = async (req, res) => {
   try {
-    let { page, size, search, searchBy, lats, lons } = req.query;
+    let { page, size, search, searchBy } = req.query;
     let templateItem = new TemplateItem();
     let query = {};
     page = page ? parseInt(page) : 1;
@@ -79,43 +78,54 @@ exports.getAllProducts = async (req, res) => {
     if (search) {
       query[searchBy] = { $regex: search, $options: "i" };
     }
-    if (lats && lons) {
-      lats = lats.split(",").map((num) => parseFloat(num.trim()));
-      lons = lons.split(",").map((num) => parseFloat(num.trim()));
-      let stores = await getStoresByLocation(
-        { min: Math.min(...lats), max: Math.max(...lats) },
-        { min: Math.min(...lons), max: Math.max(...lons) }
-      );
-      let storeIds = stores.map((store) => store._id.toString());
-      let items = await findUsingKeyAndValue("store", { $in: storeIds });
-      let uniqueTemplateItemsIds = items.reduce((acc, item) => {
-        if (!acc.includes(item.templateItemId)) {
-          acc.push(item.templateItemId);
-        }
-        return acc;
-      }, []);
-      query["_id"] = { $in: uniqueTemplateItemsIds.map(id => ObjectId(id)) };
-      console.log(query)
-      let result = await templateItem.find(query, options);
-      return res.status(200).json({
-        result,
-        message: "Products retrieved successfully",
-        success: true,
-      });
-    } else {
-      let result = await templateItem.find(query, options);
-      return res.status(200).json({
-        result,
-        message: "Products retrieved successfully",
-        success: true,
-      });
-    }
+    let result = await templateItem.find(query, options);
+    return res.status(200).json({
+      result,
+      message: "Products retrieved successfully",
+      success: true,
+    });
   } catch (error) {
     console.log(error);
     return res.status(400).json({
       message: "Something went wrong",
       success: false,
       result: error,
+    });
+  }
+};
+
+exports.getAllProductsByLocation = async (req, res) => {
+  let templateItem = new TemplateItem();
+  let { lats, lons } = req.query;
+  let query = {};
+  let options = {};
+  if (lats && lons) {
+    lats = lats.split(",").map((num) => parseFloat(num.trim()));
+    lons = lons.split(",").map((num) => parseFloat(num.trim()));
+    let stores = await getStoresByLocation(
+      { min: Math.min(...lats), max: Math.max(...lats) },
+      { min: Math.min(...lons), max: Math.max(...lons) }
+    );
+    let storeIds = stores.map((store) => store._id.toString());
+    let items = await findUsingKeyAndValue("store", { $in: storeIds });
+    let uniqueTemplateItemsIds = items.reduce((acc, item) => {
+      if (!acc.includes(item.templateItemId)) {
+        acc.push(item.templateItemId);
+      }
+      return acc;
+    }, []);
+    query["_id"] = { $in: uniqueTemplateItemsIds.map((id) => ObjectId(id)) };
+    let result = await templateItem.find(query, options);
+    return res.status(200).json({
+      result,
+      message: "Products retrieved successfully",
+      success: true,
+    });
+  } else {
+    return res.status(400).json({
+      result: null,
+      message: "Latitude and Longitude required",
+      success: false,
     });
   }
 };
