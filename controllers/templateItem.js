@@ -2,6 +2,8 @@ var xlsx = require("xlsx");
 const fs = require("fs");
 const util = require("util");
 const unlinkFile = util.promisify(fs.unlink);
+const { ObjectId } = require('mongodb')
+
 
 const path = require("path");
 const multer = require("multer");
@@ -65,24 +67,49 @@ exports.addBulkProductsFromExcelFile = async (req, res) => {
 
 exports.getAllProducts = async (req, res) => {
   try {
-    let { page, size ,search,searchBy } = req.query
+    let { page, size, search, searchBy, lats, lons } = req.query;
     let templateItem = new TemplateItem();
-    let query = {}
-    page = page ? parseInt(page) : 1
-    size = size ? parseInt(size) : 20
+    let query = {};
+    page = page ? parseInt(page) : 1;
+    size = size ? parseInt(size) : 20;
     let options = {
-      limit:  size,
-      skip:(page - 1) * (size)
+      limit: size,
+      skip: (page - 1) * size,
+    };
+    if (search) {
+      query[searchBy] = { $regex: search, $options: "i" };
     }
-    if(search) {
-      query[searchBy] = { $regex: search, $options: "i" }
+    if (lats && lons) {
+      lats = lats.split(",").map((num) => parseFloat(num.trim()));
+      lons = lons.split(",").map((num) => parseFloat(num.trim()));
+      let stores = await getStoresByLocation(
+        { min: Math.min(...lats), max: Math.max(...lats) },
+        { min: Math.min(...lons), max: Math.max(...lons) }
+      );
+      let storeIds = stores.map((store) => store._id.toString());
+      let items = await findUsingKeyAndValue("store", { $in: storeIds });
+      let uniqueTemplateItemsIds = items.reduce((acc, item) => {
+        if (!acc.includes(item.templateItemId)) {
+          acc.push(item.templateItemId);
+        }
+        return acc;
+      }, []);
+      query["_id"] = { $in: uniqueTemplateItemsIds.map(id => ObjectId(id)) };
+      console.log(query)
+      let result = await templateItem.find(query, options);
+      return res.status(200).json({
+        result,
+        message: "Products retrieved successfully",
+        success: true,
+      });
+    } else {
+      let result = await templateItem.find(query, options);
+      return res.status(200).json({
+        result,
+        message: "Products retrieved successfully",
+        success: true,
+      });
     }
-    let result = await templateItem.find(query,options);
-    return res.status(200).json({
-      result,
-      message: "Products retrieved successfully",
-      success: true,
-    });
   } catch (error) {
     console.log(error);
     return res.status(400).json({
@@ -156,14 +183,4 @@ exports.deleteProduct = async (req, res) => {
       .status(500)
       .json({ message: "Something went wrong", success: false, result: error });
   }
-};
-
-exports.getStoreByLocation = async () => {
-  let stores = await getStoresByLocation(
-    { min: 12.9, max: 12.9135 },
-    { min: 77.61, max: 77.67 }
-  );
-  let storeIds = stores.map(store => store._id);
-
-  let items = await findUsingKeyAndValue("store", {$in: storeIds})
 };
