@@ -339,109 +339,117 @@ const handleButtonMessage = async (message, contact, cachedData) => {
         }
         if (exitString.toLowerCase() == 'exit') {
             await data.clearAllCache()
-        } else {}
-        switch(data.state) {
-            case '00001':
-                data.data = {}
-                switch(message.button.text) {
-                    case 'Kannada':
-                        data.data.preferredLanguage = languages.kannada
-                        break
-                    case 'English':
-                        data.data.preferredLanguage = languages.english
-                        break
-                }
-                data.state = '00002'
-                data.cacheState()
-                let languageString = "English"
-                if (data.data.preferredLanguage != languages.english) {
-                    languageString = await translateText(message.button.text, data.data.preferredLanguage)
-                }
-                messageToSend = new Message(
-                    message.from,
-                    'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                    'whats_your_name',
-                    data.data.preferredLanguage,
-                    [{
-                        "type": "body",
-                        "parameters": [
-                            {
-                                "type": "text",
-                                "text": languageString
-                            }
-                        ]
-                    }]
-                )
-                break
-            case '00010':
-                let messageId = message.context.id
-                let itemDocId = data.data.messageItemMap[messageId]
-                let itemDocument = await db.getDB().collection('items').findOne({
-                    _id: ObjectId(itemDocId)
-                })
-                let templateDocument = await db.getDB().collection('templateItems').findOne({
-                    _id: ObjectId(itemDocument.templateItemId)
-                })
-                if(data.data.operation == 'update' && itemDocument != null) {
-                    await new Message(
+            sendMessage = new Message(
+                message.from,
+                'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                'exit_message',
+                data.data.preferredLanguage,
+                null
+            )
+        } else {
+            switch (data.state) {
+                case '00001':
+                    data.data = {}
+                    switch (message.button.text) {
+                        case 'Kannada':
+                            data.data.preferredLanguage = languages.kannada
+                            break
+                        case 'English':
+                            data.data.preferredLanguage = languages.english
+                            break
+                    }
+                    data.state = '00002'
+                    data.cacheState()
+                    let languageString = "English"
+                    if (data.data.preferredLanguage != languages.english) {
+                        languageString = await translateText(message.button.text, data.data.preferredLanguage)
+                    }
+                    messageToSend = new Message(
                         message.from,
                         'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                        'update_price_template',
+                        'whats_your_name',
                         data.data.preferredLanguage,
                         [{
                             "type": "body",
                             "parameters": [
                                 {
                                     "type": "text",
-                                    "text": templateDocument.name
-                                }]
+                                    "text": languageString
+                                }
+                            ]
                         }]
-                    ).send()
-                    data.state = '00011'
-                    data.data.toUpdateItemId = itemDocument._id.toString()
-                    await data.cacheState()
-                } else if (data.data.operation == 'delete' && itemDocument != null) {
+                    )
+                    break
+                case '00010':
+                    let messageId = message.context.id
+                    let itemDocId = data.data.messageItemMap[messageId]
+                    let itemDocument = await db.getDB().collection('items').findOne({
+                        _id: ObjectId(itemDocId)
+                    })
+                    let templateDocument = await db.getDB().collection('templateItems').findOne({
+                        _id: ObjectId(itemDocument.templateItemId)
+                    })
+                    if (data.data.operation == 'update' && itemDocument != null) {
+                        await new Message(
+                            message.from,
+                            'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            'update_price_template',
+                            data.data.preferredLanguage,
+                            [{
+                                "type": "body",
+                                "parameters": [
+                                    {
+                                        "type": "text",
+                                        "text": templateDocument.name
+                                    }]
+                            }]
+                        ).send()
+                        data.state = '00011'
+                        data.data.toUpdateItemId = itemDocument._id.toString()
+                        await data.cacheState()
+                    } else if (data.data.operation == 'delete' && itemDocument != null) {
+                        await new Message(
+                            message.from,
+                            'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            'delete_confirmation',
+                            data.data.preferredLanguage,
+                            [{
+                                "type": "body",
+                                "parameters": [
+                                    {
+                                        "type": "text",
+                                        "text": templateDocument.name
+                                    }]
+                            }]
+                        ).send()
+                        data.state = '00012'
+                        data.data.toDeleteItemId = itemDocument._id.toString()
+                        await data.cacheState()
+                    }
+                    break
+                case '00012':
+                    await db.getDB().collection('items').deleteOne({
+                        _id: ObjectId(data.data.toDeleteItemId)
+                    })
                     await new Message(
                         message.from,
                         'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                        'delete_confirmation',
+                        'delete_success',
                         data.data.preferredLanguage,
-                        [{
-                            "type": "body",
-                            "parameters": [
-                                {
-                                    "type": "text",
-                                    "text": templateDocument.name
-                                }]
-                        }]
+                        null
                     ).send()
-                    data.state = '00012'
-                    data.data.toDeleteItemId = itemDocument._id.toString()
-                    await data.cacheState()
-                }
-                break
-            case '00012':
-                await db.getDB().collection('items').deleteOne({
-                    _id: ObjectId(data.data.toDeleteItemId)
-                })
-                await new Message(
-                    message.from,
-                    'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                    'delete_success',
-                    data.data.preferredLanguage,
-                    null
-                ).send()
-                data.clearAllCache()
-                break
-            default:
-                // let messageId = message.context.id
-                // console.log(messageId)
-                // console.log(data.data.messageItemMap)
-                // let itemDocId = data.data.messageItemMap[messageId]
-                // let itemDocument = await db.getDB().collection('items').findOne({
-                //     _id: ObjectId(itemDocId)
-                // })
-                console.log('Error in Button')
+                    data.clearAllCache()
+                    break
+                default:
+                    // let messageId = message.context.id
+                    // console.log(messageId)
+                    // console.log(data.data.messageItemMap)
+                    // let itemDocId = data.data.messageItemMap[messageId]
+                    // let itemDocument = await db.getDB().collection('items').findOne({
+                    //     _id: ObjectId(itemDocId)
+                    // })
+                    console.log('Error in Button')
+            }
         }
         if (messageToSend != null) {
             messageToSend.send()
