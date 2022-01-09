@@ -224,48 +224,49 @@ const handleTextMessage = async (message, contact, cachedData) => {
                         messageToSend = new Message(
                             message.from,
                             'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                            'update_price_template',
+                            'price_voicenote',
                             data.data.preferredLanguage,
-                            [{
-                                "type": "body",
-                                "parameters": [
-                                    {
-                                        "type": "text",
-                                        "text": templateItemName
-                                    }]
-                            }]
+                            null
+                            // [{
+                            //     "type": "body",
+                            //     "parameters": [
+                            //         {
+                            //             "type": "text",
+                            //             "text": templateItemName
+                            //         }]
+                            // }]
                         )
                     }
                     break
-                case '00014':
-                    let updatedPriceTemplate = parseInt(message.text.body)
-                    if(!isNaN(updatedPriceTemplate)) {
-                        let newProd = new TemplateItem(
-                            data.data.newTemplateItem.numId,
-                            data.data.newTemplateItem.name,
-                            data.data.newTemplateItem.description,
-                            [updatedPriceTemplate]
-                        )
-                        let prodSaved = await newProd.save()
-                        if(prodSaved) {
-                            await new Items(
-                                prodSaved.insertedId.toString(),
-                                data.data.storeId,
-                                updatedPriceTemplate,
-                                12,
-                                data.data.filekey
-                            ).save()
-                            messageToSend = new Message(
-                                message.from,
-                                'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                                'update_success',
-                                data.data.preferredLanguage,
-                                null
-                            )
-                            await data.clearAllCache()
-                        }
-                    }
-                    break
+                // case '00014':
+                //     let updatedPriceTemplate = parseInt(message.text.body)
+                //     if(!isNaN(updatedPriceTemplate)) {
+                //         let newProd = new TemplateItem(
+                //             data.data.newTemplateItem.numId,
+                //             data.data.newTemplateItem.name,
+                //             data.data.newTemplateItem.description,
+                //             [updatedPriceTemplate]
+                //         )
+                //         let prodSaved = await newProd.save()
+                //         if(prodSaved) {
+                //             await new Items(
+                //                 prodSaved.insertedId.toString(),
+                //                 data.data.storeId,
+                //                 updatedPriceTemplate,
+                //                 12,
+                //                 data.data.filekey
+                //             ).save()
+                //             messageToSend = new Message(
+                //                 message.from,
+                //                 'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                //                 'update_success',
+                //                 data.data.preferredLanguage,
+                //                 null
+                //             )
+                //             await data.clearAllCache()
+                //         }
+                //     }
+                //     break
                 default:
                     let storedStore = await storeModel.getStoreUsingKeyAndValue(
                         'mobile',
@@ -616,6 +617,42 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                         data.data.preferredLanguage,
                         null
                     )
+                }
+                break
+            case '00014':
+                let detectedWords2 = await stt.convertToText(data.data.filepath)
+                if(detectedWords2) {
+                    let price = parseInt(detectedWords2)
+                    if(!isNaN(price)) {
+                        let newProd = new TemplateItem(
+                            data.data.newTemplateItem.numId,
+                            data.data.newTemplateItem.name,
+                            data.data.newTemplateItem.description,
+                            [price]
+                        )
+                        let prodSaved = await newProd.save()
+                        if (prodSaved) {
+                            await new Items(
+                                prodSaved.insertedId.toString(),
+                                data.data.storeId,
+                                price,
+                                12,
+                                data.data.filekey
+                            ).save()
+                            messageToSend = new Message(
+                                message.from,
+                                'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                                'update_success',
+                                data.data.preferredLanguage,
+                                null
+                            )
+                            await data.clearAllCache()
+                        }
+                    } else {
+                        // try again template
+                    }
+                } else {
+                    // todo := try again template
                 }
                 break
             default:
