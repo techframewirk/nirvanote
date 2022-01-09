@@ -20,5 +20,5 @@ RUN mkdir media
 RUN mkdir uploads
 
 RUN npm i -g pm2
-EXPOSE 3000
+EXPOSE 4545
 CMD ["pm2-runtime", "app.js"]

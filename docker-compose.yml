@@ -7,7 +7,7 @@ services:
     volumes:
       - ./data/db:/data/db
     ports:
-      - "27018:27017"
+      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
@@ -20,3 +20,30 @@ services:
       - '6379:6379'
     volumes:
       - ./redis:/data
+
+  nirvanote:
+    build: 
+      context: .
+    restart: unless-stopped
+    ports:
+      - '4545:4545'
+    environment:
+      AWS_ACCESS_KEY_ID: 
+      AWS_SECRET_ACCESS_KEY:
+      PORT: 4545
+      S3_URL_EXPIRY: 3600
+      MONGOURL: mongodb://root:root@mongo:27017/stayhalo?retryWrites=true&w=majority
+      S3_REGION: 
+      S3_BUCKET: 
+      WHATSAPP_URL: 
+      WHATSAPP_ADMIN_USERNAME: 
+      WHATSAPP_ADMIN_PASSWORD: 
+      WHATSAPP_WEBHOOK_SECRET: 
+      HOST:
+      GOOGLE_APPLICATION_CREDENTIALS: 
+      REDIS: redis://redis:6379
+      S3_STORE_BUCKET:
+      pageSize: 10
+    depends_on:
+      - mongo
+      - redis
