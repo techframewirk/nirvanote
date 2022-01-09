@@ -344,7 +344,7 @@ const handleButtonMessage = async (message, contact, cachedData) => {
         }
         if (exitString.toLowerCase() == 'exit') {
             await data.clearAllCache()
-            sendMessage = new Message(
+            messageToSend = new Message(
                 message.from,
                 'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
                 'exit_message',
