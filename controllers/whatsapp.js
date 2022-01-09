@@ -191,13 +191,22 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                 price: updatedPrice
                             }
                         })
-                        messageToSend = new Message(
+                        await new Message(
                             message.from,
                             'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
                             'update_success',
                             data.data.preferredLanguage,
                             null
+                        ).send()
+                        messageToSend = new Message(
+                            message.from,
+                            'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            'patti_menu',
+                            data.data.preferredLanguage,
+                            null
                         )
+                        data.state = '00005'
+                        await data.cacheState()
                     }
                     break
                 case '00008':
