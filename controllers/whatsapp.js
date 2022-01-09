@@ -452,7 +452,16 @@ const handleButtonMessage = async (message, contact, cachedData) => {
                         data.data.preferredLanguage,
                         null
                     ).send()
-                    data.clearAllCache()
+                    messageToSend = new Message(
+                        message.from,
+                        'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                        'patti_menu',
+                        data.data.preferredLanguage,
+                        null
+                    )
+                    data.state = '00005'
+                    await data.cacheState()
+                    // data.clearAllCache()
                     break
                 default:
                     // let messageId = message.context.id
