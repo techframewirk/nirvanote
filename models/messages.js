@@ -4,7 +4,7 @@ const db = require('../utils/db')
 const collectionName = 'messages'
 
 const messageSchema = joi.object({
-    type: joi.string().allow('sent', 'receivedd').required(),
+    type: joi.string().allow('sent', 'received').required(),
     with: joi.string().required(),
     message: joi.object().required(),
     timestamp: joi.date().default(new Date())
