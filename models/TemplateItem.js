@@ -12,7 +12,7 @@ const templateItemSchema = joi.object({
     prices: joi.array().items(
         joi.number().required()
     ).required(),
-    image: joi.string().required(),
+    image: joi.string().optional(),
 })
 
 class TemplateItem {

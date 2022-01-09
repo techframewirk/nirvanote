@@ -237,6 +237,34 @@ const handleTextMessage = async (message, contact, cachedData) => {
                         )
                     }
                     break
+                case '00014':
+                    let updatedPriceTemplate = parseInt(message.text.body)
+                    if(!isNaN(updatedPriceTemplate)) {
+                        let newProd = new TemplateItem(
+                            data.data.newTemplateItem.numId,
+                            data.data.newTemplateItem.name,
+                            data.data.newTemplateItem.description,
+                            [updatedPriceTemplate]
+                        )
+                        let prodSaved = await newProd.save()
+                        if(prodSaved) {
+                            await new Items(
+                                prodSaved.insertedId.toString(),
+                                data.data.storeId,
+                                updatedPriceTemplate,
+                                12,
+                                data.data.filekey
+                            ).save()
+                            messageToSend = new Message(
+                                message.from,
+                                'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                                'update_success',
+                                data.data.preferredLanguage,
+                                null
+                            )
+                        }
+                    }
+                    break
                 default:
                     let storedStore = await storeModel.getStoreUsingKeyAndValue(
                         'mobile',
