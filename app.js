@@ -26,6 +26,7 @@ let { CachedState } = require("./utils/classes");
 const {
   uploadExcelFile,
   addBulkProductsFromExcelFile,
+  getStoreByLocation,
 } = require("./controllers/templateItem");
 
 

@@ -43,9 +43,9 @@ class TemplateItem {
         }
     }
 
-    async find(){
+    async find(query,options){
         try {
-            let result = await db.getDB().collection(collectionName).find().toArray()
+            let result = await db.getDB().collection(collectionName).find(query,options).toArray()
             return result
         } catch (err) {
             throw err
@@ -86,6 +86,15 @@ class TemplateItem {
     async delete() {
         try {
             let result = await db.getDB().collection(collectionName).deleteOne({ _id: ObjectId(this._id) })
+            return result
+        } catch (err) {
+            throw err
+        }
+    }
+
+    async findUsingKeyAndValue(key,value) {
+        try {
+            let result = await db.getDB().collection(collectionName).find({ [key]: value }).toArray()
             return result
         } catch (err) {
             throw err
