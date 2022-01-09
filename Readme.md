@@ -28,3 +28,5 @@ The following env variables need to be defined
 ```
 docker-compose up -d
 ```
+
+##### For API Documentation refer to Nirvanote.json

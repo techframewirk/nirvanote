@@ -1,0 +1,104 @@
+{
+	"info": {
+		"_postman_id": "1ee9923f-1e66-45a5-a4e6-de5cb8a04ba1",
+		"name": "ONDC-digital-store",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "products",
+			"item": [
+				{
+					"name": "All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ENDPOINT}}/products?size=40&page=1&search=7up&searchBy=name",
+							"host": [
+								"{{ENDPOINT}}"
+							],
+							"path": [
+								"products"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "40"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "search",
+									"value": "7up"
+								},
+								{
+									"key": "searchBy",
+									"value": "name"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Products By Location",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ENDPOINT}}/products/location?lats=12.911,12.912,12.910,12.9145&lons=77.540,77.541,77.541,77.560",
+							"host": [
+								"{{ENDPOINT}}"
+							],
+							"path": [
+								"products",
+								"location"
+							],
+							"query": [
+								{
+									"key": "lats",
+									"value": "12.911,12.912,12.910,12.9145"
+								},
+								{
+									"key": "lons",
+									"value": "77.540,77.541,77.541,77.560"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "ENDPOINT",
+			"value": "http://localhost:4545",
+			"type": "string"
+		}
+	]
+}
