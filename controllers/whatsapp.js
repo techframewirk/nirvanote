@@ -342,7 +342,7 @@ const handleButtonMessage = async (message, contact, cachedData) => {
         if(cachedData.data.preferredLanguage != languages.english) {
             exitString = await translateText(message.button.text, languages.english)
         }
-        if (exitString.toLowerCase() == 'exit') {
+        if (data.state != '00006' && exitString.toLowerCase() == 'exit') {
             await data.clearAllCache()
             messageToSend = new Message(
                 message.from,
