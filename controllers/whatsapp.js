@@ -311,7 +311,7 @@ const handleTextMessage = async (message, contact, cachedData) => {
                         messageToSend = new Message(
                             message.from,
                             'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                            'welcome_to_patti2',
+                            'welcome_to_nirvanote',
                             'en',
                             null
                         )
