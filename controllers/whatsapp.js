@@ -23,7 +23,8 @@ const stateMessage = {
     '00008': 'processNewItemTemplate',
     '00010': 'listItems',
     '00011': 'updatePrice',
-    '00012': 'deleteItem'
+    '00012': 'deleteItem',
+    '00014': 'priceForItemTemplate',
 }
 
 const handleTextMessage = async (message, contact, cachedData) => {
