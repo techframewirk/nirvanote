@@ -10,6 +10,7 @@ const stt = require('../utils/stt')
 let db = require('../utils/db')
 const { ObjectId } = require('mongodb')
 const Items = require('../models/Items')
+const TemplateItem = require('../models/TemplateItem')
 
 const stateMessage = {
     '00001': 'preferredLanguageRequest',
@@ -191,6 +192,48 @@ const handleTextMessage = async (message, contact, cachedData) => {
                             'update_success',
                             data.data.preferredLanguage,
                             null
+                        )
+                    }
+                    break
+                case '00008':
+                    data.state = '00014'
+                    let [ templateItemName, templateItemDescription ] = message.text.body.split(',')
+                    if(templateItemName && templateItemDescription) {
+                        let resultMax = await db.getDB().collection('templateItems').find().sort({ numId: -1 }).limit(1).toArray()
+                        let newProductId = null
+                        if(resultMax != undefined && resultMax != null) {
+                            if(resultMax.length == 1 ) {
+                                let lastProduct = resultMax[0].numId
+                                newProductId = lastProduct + 1
+                            } else {
+                                newProductId = 1
+                            }
+                        } else {
+                            newProductId = 1
+                        }
+                        let newProd = new TemplateItem(
+                            newProductId,
+                            templateItemName,
+                            templateItemDescription,
+                            null, 
+                            null, 
+                            null
+                        )
+                        data.data.newTemplateItem = newProd
+                        await data.cacheState()
+                        messageToSend = new Message(
+                            message.from,
+                            'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            'update_price_template',
+                            data.data.preferredLanguage,
+                            [{
+                                "type": "body",
+                                "parameters": [
+                                    {
+                                        "type": "text",
+                                        "text": templateItemName
+                                    }]
+                            }]
                         )
                     }
                     break

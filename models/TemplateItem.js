@@ -16,7 +16,7 @@ const templateItemSchema = joi.object({
 })
 
 class TemplateItem {
-    constructor(_id, numId, name, description, prices, image) {
+    constructor(numId, name, description, prices, image, _id) {
         this._id = _id
         this.numId = numId
         this.name = name
