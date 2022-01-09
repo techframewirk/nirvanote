@@ -605,23 +605,23 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                             }]
                         )
                     } else {
-                        data.state = '00008'
+                        data.state = '00007'
                         await data.cacheState()
                         messageToSend = new Message(
                             message.from,
                             'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                            'item_unidentified',
+                            'try_again_template',
                             data.data.preferredLanguage,
                             null
                         )
                     }
                 } else {
-                    data.state = '00008'
+                    data.state = '00007'
                     await data.cacheState()
                     messageToSend = new Message(
                         message.from,
                         'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                        'item_unidentified',
+                        'try_again_template',
                         data.data.preferredLanguage,
                         null
                     )
@@ -657,10 +657,26 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                             await data.clearAllCache()
                         }
                     } else {
-                        // try again template
+                        data.state = '00014'
+                        await data.cacheState()
+                        messageToSend = new Message(
+                            message.from,
+                            'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            'try_again_template',
+                            data.data.preferredLanguage,
+                            null
+                        )
                     }
                 } else {
-                    // todo := try again template
+                    data.state = '00014'
+                    await data.cacheState()
+                    messageToSend = new Message(
+                        message.from,
+                        'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                        'try_again_template',
+                        data.data.preferredLanguage,
+                        null
+                    )
                 }
                 break
             default:
