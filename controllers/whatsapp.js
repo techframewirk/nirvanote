@@ -594,21 +594,21 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                             data.data.filekey
                         )
                         await newItem.save()
-                        // messageToSend = new Message(
-                        //     message.from,
-                        //     'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                        //     'add_sucess',
-                        //     data.data.preferredLanguage,
-                        //     [{
-                        //         "type": "body",
-                        //         "parameters": [
-                        //             {
-                        //                 "type": "text",
-                        //                 "text": `${templateItem.name}`
-                        //             }
-                        //         ]
-                        //     }]
-                        // )
+                        await new Message(
+                            message.from,
+                            'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                            'add_sucess',
+                            data.data.preferredLanguage,
+                            [{
+                                "type": "body",
+                                "parameters": [
+                                    {
+                                        "type": "text",
+                                        "text": `${templateItem.name}`
+                                    }
+                                ]
+                            }]
+                        ).send()
                         messageToSend = new Message(
                             message.from,
                             'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
@@ -659,13 +659,13 @@ const handleMediaMessage = async (message, contact, cachedData) => {
                                 12,
                                 data.data.filekey
                             ).save()
-                            // messageToSend = new Message(
-                            //     message.from,
-                            //     'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
-                            //     'update_success',
-                            //     data.data.preferredLanguage,
-                            //     null
-                            // )
+                            await new Message(
+                                message.from,
+                                'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
+                                'update_success',
+                                data.data.preferredLanguage,
+                                null
+                            ).send()
                             messageToSend = new Message(
                                 message.from,
                                 'db5dddd3_4383_4f7a_9b9b_31137461fa8f',
