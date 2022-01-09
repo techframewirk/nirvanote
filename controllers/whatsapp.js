@@ -262,6 +262,7 @@ const handleTextMessage = async (message, contact, cachedData) => {
                                 data.data.preferredLanguage,
                                 null
                             )
+                            await data.clearAllCache()
                         }
                     }
                     break
